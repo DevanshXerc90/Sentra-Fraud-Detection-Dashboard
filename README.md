@@ -1,47 +1,181 @@
-# Welcome to your Lovable project
+# Sentra — Fraud Detection Dashboard
 
-This project was built with [Lovable](https://lovable.dev).
+Sentra is a modern frontend for the Credit Card Fraud Detection Pipeline. It connects to a FastAPI backend to score transactions, visualize fraud risk, explore model evaluation metrics, and monitor API health.
 
-## Build with Lovable
+## Features
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+- **Home Dashboard:** Overview of the fraud detection pipeline and model evaluation.
+- **Transaction Scoring:** Submit transaction features and view the predicted fraud score, classification, risk level, and decision threshold.
+- **Threshold Analysis:** Compare documented operating points and understand the trade-off between precision and recall.
+- **Model Card:** Explore the model's evaluation results, intended use, and limitations.
+- **API Status:** Check backend availability and model readiness.
+- **Input Validation:** Validate API responses and transaction inputs, with clear error states.
+- **Responsive UI:** Designed for desktop and mobile screens.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+## Tech Stack
 
-## Development
+- React
+- TypeScript
+- TanStack Start
+- Tailwind CSS
+- Recharts
+- Zod
+- Vitest
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Architecture
 
-```sh
-git clone <this-repository-url>
+```text
+User
+  |
+  v
+Sentra Frontend
+  |
+  | GET /health
+  | POST /predict
+  v
+FastAPI Backend
+  |
+  v
+Preprocessing Pipeline
+  |
+  v
+Trained Fraud Detection Model
+  |
+  v
+Fraud Score and Classification
+```
+
+The frontend communicates directly with the backend API. No frontend proxy is configured. The pipeline illustration represents the high-level request flow; internal backend processing details are not independently verified by this frontend repository.
+
+## Live API Configuration
+
+The browser API client uses `VITE_API_BASE_URL` to determine the backend URL.
+
+Default backend:
+
+```text
+https://fraud-detection-pipeline-yyfx.onrender.com
+```
+
+To use a different API, set the variable in your frontend environment before building or deploying:
+
+```env
+VITE_API_BASE_URL=https://your-api-url.example.com
+```
+
+Changing the environment variable requires a fresh frontend deployment.
+
+### CORS Configuration
+
+The FastAPI backend must allow the exact origin of the deployed frontend. Add the published frontend origin and any required development or preview origins to the backend's `FRONTEND_ORIGINS` environment variable.
+
+The API should allow the following methods and headers:
+
+- Methods: `GET`, `POST`, `OPTIONS`
+- Headers: `Content-Type`
+
+A successful direct health request does not guarantee browser access. Verify CORS and prediction requests from the deployed frontend after changing the backend allowlist.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js
+- npm
+- Access to a running Sentra-compatible FastAPI backend
+
+Install Node.js using [nvm](https://github.com/nvm-sh/nvm#installing-and-updating), if needed.
+
+### Install and Run
+
+Clone this repository:
+
+```bash
+git clone <repository-url>
 cd <repository-name>
-npm i
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Configure the backend URL in your environment if needed, then start the development server using the script configured by this project:
+
+```bash
 npm run dev
 ```
 
-## Built with
+## Application Routes
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+| Route | Purpose |
+|---|---|
+| `/` | Home dashboard |
+| `/score` | Transaction scoring |
+| `/thresholds` | Threshold comparison |
+| `/model-card` | Model information and evaluation |
+| `/api-status` | Backend health and API status |
 
-## Sentra configuration
+## Evaluation Visualizations
 
-`VITE_API_BASE_URL` configures the browser API client. It defaults to `https://fraud-detection-pipeline-yyfx.onrender.com`. Set it in the frontend environment before deploying; changing it requires a fresh frontend deployment. The client calls `GET /health` and `POST /predict`, validates responses with Zod, and reports browser-observed durations.
+Sentra includes charts for three documented offline stratified operating points. Evaluation values are maintained in `src/lib/evaluation.ts`.
 
-FastAPI must allowlist the frontend's exact origin in its CORS middleware, including the preview origin during development and the final published origin. Allow GET, POST, OPTIONS and the Content-Type header. No frontend proxy is provided.
+The dashboard does not synthesize a full precision-recall curve. Displayed metrics come from documented offline evaluation results and should not be interpreted as guarantees of future or production performance.
 
-Home is `/`; scoring is `/score`; existing `/thresholds`, `/model-card` and `/api-status` views are preserved. Recharts compares three documented offline stratified operating points. All offline metrics remain in `src/lib/evaluation.ts`; no full precision-recall curve is synthesized.
+The model's reported score is not necessarily a calibrated probability of fraud.
 
-Run `bunx vitest run src/test/fraudApi.test.ts src/test/evaluation.test.ts src/test/app-routing.test.tsx` to verify the input contract, split-specific metrics and all five view addresses.
+## Testing
 
-### Enhancement verification (26 October 2026)
+Run the project's targeted tests:
 
-- Changed pages: `src/routes/index.tsx` (new Home), `src/routes/score.tsx` (preserved scoring moved from `/`), `src/routes/thresholds.tsx`, `src/routes/model-card.tsx`, `src/routes/api-status.tsx`.
-- Shared presentation: `src/components/EvaluationCharts.tsx` (new grouped bar charts and metric bars), `src/components/ScoreBar.tsx`, `src/components/AppShell.tsx`, `src/components/ui-kit.tsx`, `src/styles.css`, `src/routes/__root.tsx`. `src/lib/fraudApi.ts` retains its contract and uses index-style environment access for TypeScript compatibility.
-- Tests: 14 passed across API validation, exact documented evaluation values and five-page routing. Browser checks confirmed all five views, 30 missing-field errors, sample-only input population, 12 threshold bars, no page-level runtime exceptions, and no document overflow at 1280px desktop and 390px mobile.
-- Remaining external step: the service returned HTTP 200 / ready to a direct health request, but omitted Access-Control-Allow-Origin for the tested `http://localhost:8080` origin. Prediction preflight returned HTTP 400. Browser health and scoring therefore correctly show unavailable/error states; a successful browser prediction could not be verified. Allowlist the frontend origin in Render and redeploy the service, then repeat the live test.
-- Pipeline illustration is a high-level contract-based description. This frontend repository contains no backend source or held-out precision-recall curve asset; internal processing order is not independently verified.
+```bash
+bunx vitest run \
+  src/test/fraudApi.test.ts \
+  src/test/evaluation.test.ts \
+  src/test/app-routing.test.tsx
+```
+
+These tests cover API response validation, documented evaluation values, and application routing.
+
+## Project Structure
+
+```text
+src/
+├── components/
+│   ├── EvaluationCharts.tsx
+│   ├── ScoreBar.tsx
+│   ├── AppShell.tsx
+│   └── ui-kit.tsx
+├── lib/
+│   ├── fraudApi.ts
+│   └── evaluation.ts
+├── routes/
+│   ├── index.tsx
+│   ├── score.tsx
+│   ├── thresholds.tsx
+│   ├── model-card.tsx
+│   ├── api-status.tsx
+│   └── __root.tsx
+├── styles.css
+└── test/
+```
+
+## Verification Notes
+
+**Last documented enhancement verification:** 26 October 2026.
+
+- Targeted tests: 14 passed across API validation, evaluation metrics, and routing.
+- Browser checks covered the five application views, missing-field validation, sample input population, threshold charts, and desktop/mobile layouts.
+- The backend returned HTTP 200 with a ready status during a direct health request.
+- Browser access was not fully verified at that time because the tested frontend origin was missing from the backend CORS allowlist. Update the allowlist, redeploy the backend, and verify live health and scoring requests from the published frontend.
+
+## Related Repository
+
+**Backend:** [Credit Card Fraud Detection Pipeline](https://github.com/DevanshXerc90/Fraud-detection-pipeline)
+
+The backend repository contains the FastAPI service, model pipeline, and evaluation documentation.
+
+## Disclaimer
+
+Sentra is a demonstration frontend for a machine-learning fraud detection project. The reported metrics are based on offline dataset evaluations and do not guarantee performance on live financial transactions. The application has not been established as a production-ready financial decision system.
