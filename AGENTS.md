@@ -14,3 +14,4 @@
 - No proxy/backend for CORS: the FastAPI service must allowlist the frontend origin.
 - Home is the default `/` route and the live analyst scoring form resides at `/score`; keep all five content views independently shareable.
 - Reuse Recharts for discrete documented operating-point charts, never synthesize precision-recall curve data; reusable chart presentation stays separate from evaluation values.
+- Keep the SVG browser icon as the source for the matching multi-size ICO fallback, so modern and legacy browsers show the same Sentra branding.

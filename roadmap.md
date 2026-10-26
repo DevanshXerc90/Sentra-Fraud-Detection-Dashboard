@@ -1,4 +1,6 @@
 # Sentra enhancements
+- [x] Replace browser icons and verify Sentra metadata without changing functionality; hide the published default badge.
+- [x] Verify production build and sync branding changes to GitHub.
 - [x] Add default Home and preserve scoring at /score.
 - [x] Refine score result, scale and transaction controls.
 - [x] Add verified grouped threshold charts and exact comparison table.
